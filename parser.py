@@ -34,4 +34,3 @@ def calculating_receipt(response):
     receipt_dict['total'] = float(response['total'])
 
     return receipt_dict
-

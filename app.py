@@ -1,7 +1,7 @@
 import streamlit as st
 import tempfile
-from main import processing_receipt, calculating_receipt
-import os
+from parser import processing_receipt, calculating_receipt
+
 
 client_id = st.secrets["client_id"]
 client_secret = st.secrets["client_secret"]
@@ -73,16 +73,19 @@ def main():
     if file is None:
         st.text("File Uploaded: None")
     else:
-        with tempfile.NamedTemporaryFile(delete=False) as temp_file:
-            temp_file.write(file.read())
-            temp_file_path = temp_file.name
+        if "user" not in st.session_state:
+            with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+                temp_file.write(file.read())
+                temp_file_path = temp_file.name
 
-        response = processing_receipt(client_id, client_secret, username, api_key, temp_file_path)
+            response = processing_receipt(client_id, client_secret, username, api_key, temp_file_path)
 
-        receipt_dict = calculating_receipt(response)
+            receipt_dict = calculating_receipt(response)
 
-        st.write('### Item list')
-        print_receipt(receipt_dict)
+            st.write('### Item list')
+            print_receipt(receipt_dict)
+
+            st.session_state.user = "user"
 
         st.write('######')
         st.write('### Splitter')

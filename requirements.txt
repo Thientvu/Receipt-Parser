@@ -1,3 +1,2 @@
 streamlit
 veryfi
-python-dotenv
