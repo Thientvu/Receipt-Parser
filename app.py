@@ -79,8 +79,8 @@ def main():
             response = processing_receipt(client_id, client_secret, username, api_key, temp_file_path)
             st.session_state.receipt_dict = calculating_receipt(response)
 
-            st.write('### Item list')
-            print_receipt(st.session_state.receipt_dict)
+        st.write('### Item list')
+        print_receipt(st.session_state.receipt_dict)
 
         st.write('######')
         st.write('### Splitter')
