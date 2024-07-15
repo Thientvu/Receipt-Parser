@@ -2,7 +2,6 @@ import streamlit as st
 import tempfile
 from parser import processing_receipt, calculating_receipt
 
-
 client_id = st.secrets["client_id"]
 client_secret = st.secrets["client_secret"]
 username = st.secrets["username"]
@@ -65,7 +64,6 @@ def calculate_per_person(receipt_dict, person_number):
 
 def main():
     st.set_page_config(page_title="Receipt Parser", layout="centered")
-
     st.title("Welcome to Receipt Parser")
         
     file = st.file_uploader("Upload an image of your receipt", type=["jpg", "png", "jpeg", "HEIC"])
@@ -73,25 +71,22 @@ def main():
     if file is None:
         st.text("File Uploaded: None")
     else:
-        if "user" not in st.session_state:
+        if "receipt_dict" not in st.session_state:
             with tempfile.NamedTemporaryFile(delete=False) as temp_file:
                 temp_file.write(file.read())
                 temp_file_path = temp_file.name
 
             response = processing_receipt(client_id, client_secret, username, api_key, temp_file_path)
-
-            receipt_dict = calculating_receipt(response)
+            st.session_state.receipt_dict = calculating_receipt(response)
 
             st.write('### Item list')
-            print_receipt(receipt_dict)
-
-            st.session_state.user = "user"
+            print_receipt(st.session_state.receipt_dict)
 
         st.write('######')
         st.write('### Splitter')
         num_people = st.number_input('Number of people in the party:', min_value=0, step=1, value=0, key='num_people')
         for person_number in range(1, num_people + 1):
-            calculate_per_person(receipt_dict, person_number)
+            calculate_per_person(st.session_state.receipt_dict, person_number)
 
 if __name__ == '__main__':
     main()
