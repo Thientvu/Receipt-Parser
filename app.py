@@ -68,17 +68,18 @@ def main():
         
     file = st.file_uploader("Upload an image of your receipt", type=["jpg", "png", "jpeg", "HEIC"])
 
-    if file is None:
-        st.text("File Uploaded: None")
-    else:
-        if "receipt_dict" not in st.session_state:
-            with tempfile.NamedTemporaryFile(delete=False) as temp_file:
-                temp_file.write(file.read())
-                temp_file_path = temp_file.name
+    if file:
+        if st.button("Process Receipt"):
+            with st.spinner("Processing receipt..."):
+                with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+                    temp_file.write(file.read())
+                    temp_file_path = temp_file.name
 
-            response = processing_receipt(client_id, client_secret, username, api_key, temp_file_path)
-            st.session_state.receipt_dict = calculating_receipt(response)
+                response = processing_receipt(client_id, client_secret, username, api_key, temp_file_path)
+                st.session_state.receipt_dict = calculating_receipt(response)
+                st.session_state.receipt_processed = True
 
+    if "receipt_processed" in st.session_state and st.session_state.receipt_processed:
         st.write('### Item list')
         print_receipt(st.session_state.receipt_dict)
 
