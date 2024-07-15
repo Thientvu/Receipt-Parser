@@ -7,31 +7,30 @@ client_secret = st.secrets["client_secret"]
 username = st.secrets["username"]
 api_key = st.secrets["api_key"]
 
-@st.cache_data
-def print_receipt(receipt_dict):
-    description, quantity, total = st.columns(3)
+def print_receipt(receipt_dict, container0):
+    description, quantity, total = container0.columns(3)
 
-    description.write("Item")
-    quantity.write("Quantity")
-    total.write("Price")
+    description.write("**Item**")
+    quantity.write("**Quantity**")
+    total.write("**Price**")
 
     for i in range(len(receipt_dict['items'])):
-        description.write(f"{i}: {receipt_dict['items'][i]['description']}")
+        description.write(f"{i}:  {receipt_dict['items'][i]['description']}")
         quantity.write(f"{receipt_dict['items'][i]['quantity']}")
         total.write(f"${receipt_dict['items'][i]['total']}")
-        
-    st.write('######')
-    st.write(f"Subtotal: {receipt_dict['subtotal']}")
-    st.write(f"Tax & other fees: {receipt_dict['tax & other fees']}")
-    st.write(f"Tip: {receipt_dict['tip']}")
-    st.write(f"Total: {receipt_dict['total']}")
 
-def calculate_per_person(receipt_dict, person_number):
-    st.write('######')
-    st.write(f'### Person {person_number}')
-    st.write('Select items to calculate total payment:')
+    container0.write('######')
+    container0.write(f"Subtotal: {receipt_dict['subtotal']}")
+    container0.write(f"Tax & other fees: {receipt_dict['tax & other fees']}")
+    container0.write(f"Tip: {receipt_dict['tip']}")
+    container0.write(f"Total: {receipt_dict['total']}")
 
-    num_items = st.number_input(
+def calculate_per_person(receipt_dict, person_number, container1, container):
+    container1.write('######')
+    container.write(f'### Person {person_number}')
+    container.write('Select items to calculate total payment:')
+
+    num_items = container.number_input(
         f'How many items does person {person_number} have?', 
         min_value=0,  # Set minimum value to 0
         max_value=len(receipt_dict['items']), 
@@ -42,7 +41,7 @@ def calculate_per_person(receipt_dict, person_number):
     
     selected_items = []
     for i in range(num_items):
-        item = st.selectbox(
+        item = container.selectbox(
             f'Select item {i+1} for person {person_number}', 
             [item['description'] for item in receipt_dict['items']], 
             key=f'item_{person_number}_{i}'
@@ -58,9 +57,9 @@ def calculate_per_person(receipt_dict, person_number):
                 total_cost += receipt_item['total'] / receipt_item['quantity']
                 break
 
-    st.write(f"Total cost for selected items before fee(s): {total_cost}")
-    st.write(f"Fee(s): {round(total_cost * fee_per_dollar, 2)}")
-    st.write(f"Total cost for selected items after fee(s): {round(total_cost * (fee_per_dollar + 1), 2)}")
+    container.write(f"Total cost for selected items before fee(s): {total_cost}")
+    container.write(f"Fee(s): {round(total_cost * fee_per_dollar, 2)}")
+    container.write(f"Total cost for selected items after fee(s): {round(total_cost * (fee_per_dollar + 1), 2)}")
 
 def main():
     st.set_page_config(page_title="Receipt Parser", layout="centered")
@@ -78,16 +77,22 @@ def main():
                 response = processing_receipt(client_id, client_secret, username, api_key, temp_file_path)
                 st.session_state.receipt_dict = calculating_receipt(response)
                 st.session_state.receipt_processed = True
+    
+        if "receipt_processed" in st.session_state and st.session_state.receipt_processed:
+            container0 = st.container(border = True)
+            container0.write('### Item list')
+            print_receipt(st.session_state.receipt_dict, container0)
 
-    if "receipt_processed" in st.session_state and st.session_state.receipt_processed:
-        st.write('### Item list')
-        print_receipt(st.session_state.receipt_dict)
+            st.write('######')
 
-        st.write('######')
-        st.write('### Splitter')
-        num_people = st.number_input('Number of people in the party:', min_value=0, step=1, value=0, key='num_people')
-        for person_number in range(1, num_people + 1):
-            calculate_per_person(st.session_state.receipt_dict, person_number)
+            container1 = st.container(border = True)
+            container1.write('### Splitter')
+            num_people = container1.number_input('Number of people in the party:', min_value=0, step=1, value=0, key='num_people')
+            container1.write('######')
+
+            for person_number in range(1, num_people + 1):
+                container = container1.container(border = True)
+                calculate_per_person(st.session_state.receipt_dict, person_number, container1, container)
 
 if __name__ == '__main__':
     main()
