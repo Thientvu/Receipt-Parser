@@ -1,6 +1,6 @@
 .env
 test.ipynb
 Test-images/*
-_pycache_/*
 .streamlit/*
 .DS_Store
+__pycache__/*
